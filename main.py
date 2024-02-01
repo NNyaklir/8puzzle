@@ -1,13 +1,9 @@
-#student ID here
+#<Devin Gill> <88747939> CS4390
 
-#should use a 2d array for the initial and final state.
-#use hash set for storing unique boards?
-import array as arr
-
-#2d arrays
-boardInitial= [1, 5, 0], [2, 4, 3], [7, 8, 6]
-
-boradFinal = [1, 2, 3], [4, 5, 6], [7, 8, 0]
+#!/usr/bin/env python3
+import os
+import ast
+import numpy as np
 
 class Pair: #class to store two values
     def __init__(self,val1,val2):
@@ -20,66 +16,119 @@ def comparePair(p1,p2): #function to compare two pairs
     else:
         return False
     
-def validMove (pos1,pos2): #checks if a move from one position to another is valid
-    #valid moves are for [0->1,0->3],[1->0,1->2,1->4]
-    #[2->1,2->5]  [3->0,3->4,3->6]
-    #[4->1,4->3,4->5,4->7]
-    #[5->2,5->4,5->8]
-    #[6->3,6-7]  [7->6,7->4,7->8]
-    #[8->7,8->5]
-    validMoves = arr.array (i,[Pair(0,1),Pair(0,3),Pair(1,0),Pair(1,2),Pair(1,4),
-                               Pair(2,1),Pair(2,5),Pair(3,0),Pair(3,4),Pair(3,6),
-                               Pair(4,1),Pair(4,3),Pair(4,5),Pair(4,7),Pair(5,2),
-                               Pair(5,4),Pair(5,8),Pair(6,3),Pair(6,7),Pair(7,6),
-                               Pair(7,4),Pair(7,8),Pair(8,7),Pair(8,5)])
-    consideredMove=Pair(pos1,pos2)
-    check=False
-    for i in validMoves:
-        if comparePair(validMoves[i],consideredMove)==True:
-            check=True
-            
-    return check
+
+#Reverse the given list. 
+def reverse_list(lst):
+    return list(reversed(lst))
+
+#Swap the elements of 2darray in position 1 and position 2.
+def swap_positions(arr2d, pair1, pair2):
+    temp=arr2d[pair1.val1,pair1.val2]
+    arr2d[pair1.val1,pair1.val2]=arr2d[pair2.val1,pair2.val2]
+    arr2d[pair2.val1,pair2.val2]=temp
+    return arr2d
+
+#Given the position of '0' and a direction 0, 1, 2, or 3 identify if valid move, and swap.
+def move(node, direction):
+
+    node_copy = node.copy()
+    #print(node_copy)
+    i = np.argwhere(node_copy==0)[0]
+    #print(i)
+    iPair=Pair(i[0],i[1])
+    #print(iPair.val1,iPair.val2)
+
+    if direction == 0 and comparePair(iPair,Pair(0,0))==False and comparePair(iPair,Pair(0,1))==False and comparePair(iPair,Pair(0,2))==False:
+        return swap_positions(node_copy, iPair, Pair(i[0]-1,i[1]))
+    if direction == 1 and comparePair(iPair,Pair(0,2))==False and comparePair(iPair,Pair(1,2))==False and comparePair(iPair,Pair(2,2))==False:
+        return swap_positions(node_copy, iPair, Pair(i[0],i[1]+1))
+    if direction == 2 and comparePair(iPair,Pair(2,0))==False and comparePair(iPair,Pair(2,1))==False and comparePair(iPair,Pair(2,2))==False:
+        return swap_positions(node_copy, iPair, Pair(i[0]+1,i[1]))
+    if direction == 3 and comparePair(iPair,Pair(0,0))==False and comparePair(iPair,Pair(1,0))==False and comparePair(iPair,Pair(2,0))==False:
+        return swap_positions(node_copy, iPair, Pair(i[0],i[1]-1))
+
+    return node.copy()
+
+#Given the visited and parents, backtrack path to origin.
+def generate_path(index, visited, parents):
+    print("Backtracking------------")
+    path = [(visited[-1])]
+    while index != 0:
+        node = (visited[index])
+        path.append(node)
+        index = parents[index]
+    path.append(visited[0])
+    return reverse_list(path)
+
+def arrIn(lst,arr2d):
+    for i in lst:
+        if (arr2d==i).sum()==9:
+            return True
+    return False
+
+def arrInd(lst,arr2d):
+    for i in range (len(lst)):
+        if (arr2d==lst[i]).sum()==9:
+            return i
+    return -1
+
+#Brute force path to all 4 directions, and append visited to set.
+def bfs(data, goal, visited):
+    print("Running----------------")
+    parent_i = [0]
+    #while not arrIn(data,goal):
+    while len(data)>0:
         
-    """This is the position table
-        [(00)=0,(01)=1,(02)=2
-         (10)=3,(11)=4,(12)=5
-         (20)=6,(21)=7,(22)=8]
-    """
-def valueCoordX(arr2d,value): #finds x value of number in array
-    for i in range(len(arr2d)):
-        for j in range(len(arr2d[i])):
-            if arr2d[i,j]==value:
-                return i
-            
-def valueCoordY(arr2d,value): #finds y value of number in array
-    for i in range(len(arr2d)):
-        for j in range(len(arr2d[i])):
-            if arr2d[i,j]==value:
-                return j
-            
-            
-def findPosition(arr2d,number): #finds position of the number in the array
-    for i in range(len(arr2d)):
-        for j in range(len(arr2d[i])):
-            if arr2d[i,j]==number:
-                if i==0 and j==0: return 0
-                elif i==0 and j==1: return 1
-                elif i==0 and j==2: return 2
-                elif i==1 and j==0: return 3
-                elif i==1 and j==1: return 2
-                elif i==1 and j==2: return 2
-                elif i==2 and j==0: return 2
-                elif i==2 and j==1: return 2
-                elif i==2 and j==2: return 2
+        node = data.pop(0)
+        for d in range(4):
+            if not arrIn(visited,goal):
+                test = move(node, d).copy()
+                if not arrIn(visited,test):
+                    parent_i.append(arrInd(visited,node))
+                    visited.append(test)
+                    data.append(test)
+    else:
+        print("Goal Reached !!!")
+    return parent_i
+                    
+        
     
-            
-def swapPos (arr2d, number1, number2): #swaps two positions of numbers in the array by finding their position, finding the coordinates
-    pos1= findPosition(arr2d,number1)  # and then finally replacing values
-    pos2= findPosition(arr2d,number2)
-    if validMove(pos1,pos2):
-        pos1X= valueCoordX(arr2d,number1)
-        pos1Y= valueCoordY(arr2d,number1)
-        pos2X= valueCoordX(arr2d,number2)
-        pos2Y= valueCoordY(arr2d,number2)
-        arr2d[pos2X,pos2Y]=number2
-        arr2d[pos1X,pos1Y]=number1
+
+#Main method, start state, run BFS, and create reference files.
+def run(start, goal):
+    location = os.getcwd() + "/"
+    node_i = np.array(start)
+    node_goal = np.array(goal)
+    data = [node_i]
+    visited = [node_i]
+    parents = bfs(data, node_goal, visited)
+    index = parents[-1]
+    path = generate_path(index, visited, parents)
+
+    with open(location + "nodePath.txt", "w") as textfile:
+        print("Writing Path File")
+        for element in path:
+            textfile.write(" ".join(map(str, element)) + "\n")
+
+    with open(location + "NodesInfo.txt", "w") as textfile:
+        print("Writing Node Info")
+        textfile.write("Node_index  Parent_index  cost\n")
+        for i, _ in enumerate(visited):
+            textfile.write(f"{i}             {parents[i]}              0\n")
+
+    print("All Done!")
+
+    with open(location + "Nodes.txt", "w") as textfile:
+        print("Writing Node File")
+        for element in visited:
+            temp = element
+            textfile.write(" ".join(map(str, temp)) + "\n")
+
+# Change these start and goal nodes
+##############
+node_start = [1, 5, 0], [2, 4, 3], [7, 8, 6]
+node_goal1 = [1, 2, 3], [4, 5, 6], [7, 8, 0]
+
+##############
+
+run(node_start,node_goal1)
